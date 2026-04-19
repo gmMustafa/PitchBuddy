@@ -110,7 +110,7 @@ pitchbuddy/
 
 **Clone the repository:**
 ```bash
-git clone <repo-url>
+git clone https://github.com/gmMustafa/PitchBuddy.git
 cd pitchbuddy
 ```
 

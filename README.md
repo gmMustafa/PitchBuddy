@@ -2,8 +2,6 @@
 
 > AI-powered startup pitch simulator. Practice your pitch against a skeptical VC, get coached in real time, and sharpen your story before the real meeting.
 
-**Live demo:** *(add your Cloud Run URL here)*
-
 ---
 
 ## Overview
@@ -49,7 +47,7 @@ Select your investor type and funding stage before you start — the AI adjusts 
 
 ```bash
 # Clone and enter
-git clone https://github.com/your-username/pitchbuddy.git
+git clone https://github.com/gmMustafa/PitchBuddy.git
 cd pitchbuddy
 
 # Create virtualenv
