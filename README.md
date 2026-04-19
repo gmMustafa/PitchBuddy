@@ -2,6 +2,8 @@
 
 > AI-powered startup pitch simulator. Practice your pitch against a skeptical VC, get coached in real time, and sharpen your story before the real meeting.
 
+![PitchBuddy App](assets/0a.png)
+
 ---
 
 ## Overview
@@ -23,6 +25,8 @@ Select your investor type and funding stage before you start — the AI adjusts 
 - **Suggestion cards** — One-click prompts to drill into TAM, business model, defensibility, traction, funding ask
 - **Zero friction** — No account creation; each browser session is automatically isolated
 
+![VC and Coach in action](assets/0aa.png)
+
 ---
 
 ## Tech Stack
@@ -38,6 +42,8 @@ Select your investor type and funding stage before you start — the AI adjusts 
 | Deployment | Google Cloud Run | Serverless, scales to zero |
 | CI/CD | Google Cloud Build | Auto-deploy on push |
 | Secrets | Google Secret Manager | API keys and credentials at runtime |
+
+![Tech Stack Overview](assets/0c.png)
 
 ---
 
@@ -108,13 +114,15 @@ pitchbuddy/
 
 ## Deployment
 
-Full step-by-step guide: [REPRODUCIBILITY.md](REPRODUCIBILITY.md)
+Full step-by-step guide: [reproducibility.md](reproducibility.md)
 
 Covers Firebase setup, GCP project config, Secret Manager, Cloud Build trigger, and Cloud Run deploy flags.
 
 ---
 
 ## Design Decisions
+
+![Multi-Turn Conversation Engine](assets/0b.png)
 
 **No login required.** Each Streamlit browser session gets a UUID on first load. All Firestore writes are scoped to `users/{uuid}/conversations/`. Sessions are private by construction — there is no shared state between tabs or users.
 
