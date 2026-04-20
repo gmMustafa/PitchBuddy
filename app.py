@@ -55,7 +55,7 @@ def main() -> None:
     render_sidebar(user_id)
 
     # ── Header ───────────────────────────────────────────────────
-    st.html(_HEADER_HTML)
+    st.markdown(_HEADER_HTML, unsafe_allow_html=True)
 
     # ── Chat ──────────────────────────────────────────────────────
     render_welcome_screen()
