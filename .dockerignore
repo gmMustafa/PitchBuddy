@@ -1,0 +1,29 @@
+# Virtual environment
+.venv/
+venv/
+
+# Secrets — never bake into image
+.env
+firebase-credentials.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Git
+.git/
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit local cache
+.streamlit/secrets.toml

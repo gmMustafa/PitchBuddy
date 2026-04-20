@@ -1,0 +1,49 @@
+# ── Secrets & credentials ── NEVER commit these
+.env
+firebase-credentials.json
+google_oauth_credentials.json
+*.json.key
+key.txt
+secrets/
+
+# ── Python ──
+__pycache__/
+*.py[oc]
+*.pyd
+.Python
+
+# ── Virtual environment ──
+.venv/
+venv/
+env/
+
+# ── Build / dist ──
+build/
+dist/
+wheels/
+*.egg-info/
+
+# ── Audio / media ──
+audio_responses/
+*.wav
+*.mp3
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── IDE ──
+.vscode/
+.idea/
+
+# ── Streamlit local secrets ──
+.streamlit/secrets.toml
+
+# ── Misc ──
+uv.lock
+.python-version
+pyproject.toml
+*.xlsx
+*.csv
+temp*
+assets/*.png
