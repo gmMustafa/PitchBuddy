@@ -1,33 +1,56 @@
-"""Auth: Google Sign-In (persistent) or Guest (session-only)."""
+"""Auth: Google Sign-In via redirect (persistent) or Guest (session-only)."""
 import uuid
 import streamlit as st
-import jwt
-from streamlit_oauth import OAuth2Component
+from authlib.integrations.requests_client import OAuth2Session
 
 from src.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
-_GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/auth"
-_GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
-_GOOGLE_REVOKE    = "https://oauth2.googleapis.com/revoke"
-
-
-def _oauth_component() -> OAuth2Component:
-    return OAuth2Component(
-        GOOGLE_CLIENT_ID,
-        GOOGLE_CLIENT_SECRET,
-        _GOOGLE_AUTH_URL,
-        _GOOGLE_TOKEN_URL,
-        _GOOGLE_TOKEN_URL,
-        _GOOGLE_REVOKE,
-    )
+_AUTH_URL     = "https://accounts.google.com/o/oauth2/auth"
+_TOKEN_URL    = "https://oauth2.googleapis.com/token"
+_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 
 def require_login() -> str:
-    """Returns user_id. Renders landing page and stops if not yet authenticated."""
+    """Returns user_id. Handles OAuth callback, then shows landing if not authed."""
+    _handle_oauth_callback()
     if "user_id" in st.session_state and "is_guest" in st.session_state:
         return st.session_state.user_id
     _render_landing()
     st.stop()
+
+
+def _handle_oauth_callback() -> None:
+    """Exchange OAuth code for user info if Google redirected back here."""
+    params = st.query_params
+    if "code" not in params:
+        return
+    try:
+        oauth = OAuth2Session(
+            client_id=GOOGLE_CLIENT_ID,
+            client_secret=GOOGLE_CLIENT_SECRET,
+            redirect_uri=OAUTH_REDIRECT_URI,
+        )
+        oauth.fetch_token(_TOKEN_URL, code=params["code"])
+        user_info = oauth.get(_USERINFO_URL).json()
+        st.session_state.user_id    = user_info["sub"]
+        st.session_state.is_guest   = False
+        st.session_state.user_email = user_info.get("email", "")
+        st.session_state.user_name  = user_info.get("name", "")
+    except Exception as e:
+        st.error(f"Sign-in failed — please try again. ({e})")
+    finally:
+        st.query_params.clear()
+        st.rerun()
+
+
+def _google_auth_url() -> str:
+    oauth = OAuth2Session(
+        client_id=GOOGLE_CLIENT_ID,
+        redirect_uri=OAUTH_REDIRECT_URI,
+        scope="openid email profile",
+    )
+    url, _ = oauth.create_authorization_url(_AUTH_URL, access_type="offline")
+    return url
 
 
 def _render_landing() -> None:
@@ -48,24 +71,11 @@ def _render_landing() -> None:
 
     col_l, col_mid, col_r = st.columns([1, 2, 1])
     with col_mid:
-        # ── Google Sign-In ─────────────────────────────────────────
-        oauth = _oauth_component()
-        result = oauth.authorize_button(
-            name="Continue with Google",
-            redirect_uri=OAUTH_REDIRECT_URI,
-            scope="openid email profile",
-            icon="https://www.google.com/favicon.ico",
+        st.link_button(
+            "Sign in with Google",
+            _google_auth_url(),
             use_container_width=True,
-            key="google_login",
         )
-        if result and "token" in result:
-            id_token = result["token"].get("id_token", "")
-            user_info = jwt.decode(id_token, options={"verify_signature": False})
-            st.session_state.user_id    = user_info["sub"]
-            st.session_state.is_guest   = False
-            st.session_state.user_email = user_info.get("email", "")
-            st.session_state.user_name  = user_info.get("name", "")
-            st.rerun()
 
         st.markdown(
             "<div style='text-align:center; color:#94A3B8; font-size:0.8rem;"
@@ -73,7 +83,6 @@ def _render_landing() -> None:
             unsafe_allow_html=True,
         )
 
-        # ── Guest ──────────────────────────────────────────────────
         if st.button("Continue as Guest", use_container_width=True):
             st.session_state.user_id  = str(uuid.uuid4())
             st.session_state.is_guest = True
