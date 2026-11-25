@@ -3,6 +3,8 @@ import re
 import streamlit as st
 
 from src.ai.agent import get_ai_response
+from src.config import MAX_MESSAGES_PER_SESSION
+from src.utils.retry import is_rate_limit
 from src.db.store import (
     new_conv_id,
     create_conversation,
@@ -33,7 +35,19 @@ def _make_title(text: str) -> str:
     return title.capitalize() if title else "New conversation"
 
 
+def _user_turns() -> int:
+    return sum(1 for m in st.session_state.messages if m["role"] == "user")
+
+
 def process_input(user_input: str, user_id: str) -> None:
+    # Free-tier guard: one shared API key serves every public visitor.
+    if _user_turns() >= MAX_MESSAGES_PER_SESSION:
+        st.session_state.flash = (
+            f"You've reached the {MAX_MESSAGES_PER_SESSION}-message limit for this session. "
+            "Start a new chat to keep practising."
+        )
+        return
+
     if st.session_state.conv_id is None:
         st.session_state.conv_id = new_conv_id()
         create_conversation(
@@ -44,16 +58,26 @@ def process_input(user_input: str, user_id: str) -> None:
             stage=st.session_state.get("stage", "🌱 Pre-Seed"),
         )
 
+    history = list(st.session_state.messages)  # prior turns only (excludes this input)
     st.session_state.messages.append({"role": "user", "content": user_input})
     save_message(user_id, st.session_state.conv_id, "user", user_input)
 
-    with st.spinner("Thinking…"):
-        ai_reply = get_ai_response(
-            user_input,
-            st.session_state.messages,
-            persona=st.session_state.get("persona", "Seed VC"),
-            stage=st.session_state.get("stage", "🌱 Pre-Seed"),
+    try:
+        with st.spinner("Thinking…"):
+            ai_reply = get_ai_response(
+                user_input,
+                history,
+                persona=st.session_state.get("persona", "Seed VC"),
+                stage=st.session_state.get("stage", "🌱 Pre-Seed"),
+            )
+    except Exception as exc:
+        st.session_state.messages.pop()  # drop the unanswered turn so history stays alternating
+        st.session_state.flash = (
+            "The AI is busy right now (free-tier rate limit reached). Please wait a minute and try again."
+            if is_rate_limit(exc)
+            else f"Something went wrong talking to the AI: {exc}"
         )
+        return
 
     st.session_state.messages.append({"role": "assistant", "content": ai_reply})
     save_message(user_id, st.session_state.conv_id, "assistant", ai_reply)

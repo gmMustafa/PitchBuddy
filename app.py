@@ -60,6 +60,8 @@ def main() -> None:
     # ── Chat ──────────────────────────────────────────────────────
     render_welcome_screen()
     render_chat_history()
+    if st.session_state.get("flash"):
+        st.warning(st.session_state.pop("flash"))
     render_input_bar(user_id)
 
 

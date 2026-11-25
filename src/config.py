@@ -19,6 +19,16 @@ def _get(key: str, default: str = "") -> str:
 # ── API ──────────────────────────────────────────────────────────────
 GROQ_API_KEY: str = _get("GROQ_API_KEY")
 FIREBASE_CREDENTIALS_PATH: str = _get("FIREBASE_CREDENTIALS", "firebase-credentials.json")
+FIREBASE_CREDENTIALS_JSON: str = _get("FIREBASE_CREDENTIALS_JSON")
+
+# ── Free-tier guards (all overridable via env / st.secrets) ──────────
+# llama-3.x models were retired by Groq; gpt-oss are the current free production models.
+GROQ_MODEL: str = _get("GROQ_MODEL", "openai/gpt-oss-120b")
+GROQ_FALLBACK_MODEL: str = _get("GROQ_FALLBACK_MODEL", "openai/gpt-oss-20b")
+# Reasoning tokens count toward this cap, so leave headroom above the visible reply.
+MAX_RESPONSE_TOKENS: int = int(_get("MAX_RESPONSE_TOKENS", "900"))
+MAX_HISTORY_MESSAGES: int = int(_get("MAX_HISTORY_MESSAGES", "12"))
+MAX_MESSAGES_PER_SESSION: int = int(_get("MAX_MESSAGES_PER_SESSION", "40"))
 
 # ── OAuth ─────────────────────────────────────────────────────────────
 GOOGLE_CLIENT_ID: str = _get("GOOGLE_CLIENT_ID")

@@ -27,4 +27,5 @@ def render_welcome_screen() -> None:
 def render_chat_history() -> None:
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+            # Escape "$" so amounts like "$4k ... $750k" aren't rendered as LaTeX math.
+            st.markdown(msg["content"].replace("$", r"\$"))

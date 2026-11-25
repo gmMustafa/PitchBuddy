@@ -6,15 +6,25 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-from src.config import FIREBASE_CREDENTIALS_PATH
+from src.config import FIREBASE_CREDENTIALS_PATH, FIREBASE_CREDENTIALS_JSON
 
 
 def _firebase_cred() -> credentials.Certificate:
-    """Load Firebase credentials from JSON env var (cloud) or file (local)."""
-    json_str = os.getenv("FIREBASE_CREDENTIALS_JSON", "")
-    if json_str:
-        return credentials.Certificate(json.loads(json_str))
-    return credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    """Load Firebase credentials, in priority order:
+    1. [firebase] table in st.secrets        (Streamlit Community Cloud)
+    2. FIREBASE_CREDENTIALS_JSON env/secret  (Cloud Run / any host)
+    3. FIREBASE_CREDENTIALS file path        (local dev)
+    """
+    try:
+        if "firebase" in st.secrets:
+            return credentials.Certificate(dict(st.secrets["firebase"]))
+    except Exception:
+        pass
+    if FIREBASE_CREDENTIALS_JSON:
+        return credentials.Certificate(json.loads(FIREBASE_CREDENTIALS_JSON))
+    if os.path.exists(FIREBASE_CREDENTIALS_PATH):
+        return credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    raise RuntimeError("Firebase credentials not configured")
 
 
 @st.cache_resource
