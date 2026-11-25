@@ -29,7 +29,9 @@ steps:
       - '--max-instances=10'
       - '--timeout=300'
       - '--set-env-vars=FIREBASE_CREDENTIALS=/secrets/firebase-credentials.json'
-      - '--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest'
+      - '--set-secrets=GROQ_API_KEY=GROQ_API_KEY:latest'
+      - '--set-secrets=GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest'
+      - '--set-secrets=GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest'
       - '--set-secrets=/secrets/firebase-credentials.json=FIREBASE_CREDENTIALS:latest'
 
 images:
